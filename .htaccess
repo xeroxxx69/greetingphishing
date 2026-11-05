@@ -1,0 +1,24 @@
+# ==============================================================================
+# SECURITY RULESET: RESTRICT PUBLIC ACCESS TO SENSITIVE LOGS & LOCATION FILES
+# ==============================================================================
+
+# Disable directory browsing across the application
+Options -Indexes
+
+# Deny direct browser/HTTP access to sensitive logs, backups, and coordinate records
+<FilesMatch "(^#.*#|\.(bak|log|ini|env|sh|git.*)|(current_location|saved\.locations|ip|LocationLog|Log)\.txt|location_.*\.txt)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Explicitly block access to the saved_locations directory
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^saved_locations(/.*)?$ - [F,L,NC]
+</IfModule>
+
