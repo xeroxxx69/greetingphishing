@@ -1,0 +1,605 @@
+/* ==========================================================================
+   THE DIWALI EXPERIENCE — CORE STYLESHEET
+   Design System, Mobile-First Layout, Animations, Accessibility
+   ========================================================================== */
+
+:root {
+  /* Exact Design System Palette */
+  --ink: #0a0a0f;
+  --midnight: #1a0a2e;
+  --gold: #d4af37;
+  --gold-soft: #f0d78c;
+  --warm: #ffb347;
+  --text: #f4efe4;
+  --text-dim: #b8a889;
+
+  /* Typography */
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Shadows & Glows */
+  --glow-gold: 0 0 24px rgba(212, 175, 55, 0.45);
+  --glow-lamp: 0 0 45px rgba(255, 179, 71, 0.28);
+  --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(212, 175, 55, 0.08);
+
+  /* Transitions */
+  --transition-normal: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-screen: 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Base Reset & Box Sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--ink);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   ACCESSIBILITY & FOCUS OUTLINES
+   ========================================================================== */
+
+:focus-visible {
+  outline: 2px solid var(--gold) !important;
+  outline-offset: 4px !important;
+}
+
+/* ==========================================================================
+   BACKGROUND LAYERS & ATMOSPHERE
+   ========================================================================== */
+
+#fireworks-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.atmosphere-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(26, 10, 46, 0.88) 0%, rgba(10, 10, 15, 0.98) 72%, #0a0a0f 100%);
+}
+
+.atmosphere-backdrop::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+}
+
+/* Ambient Floating Particles (Max 40 generated in JS) */
+.ambient-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.ambient-dot {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--gold-soft) 20%, var(--gold) 80%);
+  opacity: 0.6;
+  animation: floatParticle 8s infinite linear;
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(105vh) translateX(0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.65;
+  }
+  85% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateY(-5vh) translateX(25px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   APP CONTAINER & SCREENS
+   ========================================================================== */
+
+.app-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  padding: 1.5rem 1rem;
+}
+
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition-screen), visibility var(--transition-screen);
+}
+
+.screen.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  position: relative;
+}
+
+.screen-content {
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY & GLOW
+   ========================================================================== */
+
+.glow-text {
+  text-shadow: var(--glow-gold);
+}
+
+.main-heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 2.1rem;
+  line-height: 1.2;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.sub-text {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  font-weight: 400;
+  margin-bottom: 2rem;
+  max-width: 380px;
+}
+
+/* ==========================================================================
+   DIYA MOUNT
+   ========================================================================== */
+
+.diya-mount {
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.7));
+}
+
+.card-diya-container {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  min-height: 48px;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  text-decoration: none;
+  background: transparent;
+  transition: all var(--transition-normal);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+  border: 1.5px solid var(--gold);
+  color: var(--gold-soft);
+  background: rgba(212, 175, 55, 0.05);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(212, 175, 55, 0.1);
+  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+  padding: 0.9rem 2.2rem;
+}
+
+.btn-primary:hover {
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 0 28px rgba(212, 175, 55, 0.6);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* Interactive Card Buttons */
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.btn-interactive {
+  width: 100%;
+  padding: 0.8rem 1.25rem;
+  font-size: 0.95rem;
+  border-radius: 12px;
+}
+
+.btn-gold {
+  border: 1px solid var(--gold);
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--gold-soft) 0%, var(--gold) 100%);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+  font-weight: 600;
+}
+
+.btn-gold:hover {
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.55);
+  transform: translateY(-2px);
+}
+
+.btn-gold:active {
+  transform: translateY(1px);
+}
+
+.btn-outline {
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--text);
+  background: rgba(26, 10, 46, 0.4);
+}
+
+.btn-outline:hover {
+  border-color: var(--gold);
+  color: var(--gold-soft);
+  background: rgba(212, 175, 55, 0.12);
+  transform: translateY(-2px);
+}
+
+.btn-outline:active {
+  transform: translateY(1px);
+}
+
+.btn-text-link {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color var(--transition-normal);
+}
+
+.btn-text-link:hover {
+  color: var(--gold);
+}
+
+.replay-wrapper {
+  margin-top: 1.5rem;
+}
+
+/* ==========================================================================
+   SCREEN 2: REVEAL SCREEN
+   ========================================================================== */
+
+.screen-reveal .reveal-heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 2.8rem;
+  color: var(--gold-soft);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.screen-reveal .reveal-subtext {
+  font-size: 1.1rem;
+  color: var(--text);
+  opacity: 0;
+  transform: translateY(10px);
+  max-width: 400px;
+}
+
+/* ==========================================================================
+   SCREEN 3: GREETING CARD
+   ========================================================================== */
+
+.card-wrapper {
+  max-width: 580px;
+  width: 100%;
+}
+
+.greeting-card {
+  width: 100%;
+  background: rgba(18, 11, 28, 0.85);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 20px;
+  padding: 2.2rem 1.5rem;
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.ornament-line {
+  height: 1px;
+  flex: 1;
+  max-width: 70px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.ornament-sparkle {
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+
+.card-heading {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--gold-soft);
+  margin-bottom: 0.75rem;
+}
+
+.card-message {
+  font-size: 1.05rem;
+  color: var(--text);
+  line-height: 1.6;
+  max-width: 440px;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+/* Wish Box */
+.wish-container {
+  width: 100%;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.wish-box {
+  width: 100%;
+  padding: 1.1rem 1.4rem;
+  background: rgba(26, 10, 46, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 14px;
+  box-shadow: inset 0 0 18px rgba(212, 175, 55, 0.06);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.wish-box.highlight {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.22), inset 0 0 15px rgba(212, 175, 55, 0.1);
+}
+
+.wish-text {
+  font-size: 1rem;
+  color: var(--gold-soft);
+  font-style: italic;
+  line-height: 1.5;
+  transition: opacity 0.3s ease;
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATION
+   ========================================================================== */
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: var(--ink);
+  color: var(--gold-soft);
+  border: 1px solid var(--gold);
+  padding: 0.75rem 1.6rem;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(212, 175, 55, 0.3);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================== */
+
+/* Tablet & Larger Screens (min-width: 768px) */
+@media (min-width: 768px) {
+  .app-container {
+    padding: 3rem 2rem;
+  }
+
+  .main-heading {
+    font-size: 2.8rem;
+  }
+
+  .sub-text {
+    font-size: 1.15rem;
+    max-width: 480px;
+  }
+
+  .diya-mount {
+    width: 210px;
+    height: 210px;
+    margin-bottom: 2rem;
+  }
+
+  .card-diya-container {
+    width: 160px;
+    height: 160px;
+  }
+
+  .screen-reveal .reveal-heading {
+    font-size: 3.8rem;
+  }
+
+  .screen-reveal .reveal-subtext {
+    font-size: 1.25rem;
+  }
+
+  .greeting-card {
+    padding: 3rem 2.8rem;
+  }
+
+  .card-heading {
+    font-size: 2.8rem;
+  }
+
+  .card-message {
+    font-size: 1.15rem;
+    max-width: 480px;
+  }
+
+  .controls-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .wish-text {
+    font-size: 1.08rem;
+  }
+}
+
+/* Desktop Screens (min-width: 1024px) */
+@media (min-width: 1024px) {
+  .main-heading {
+    font-size: 3.2rem;
+  }
+
+  .greeting-card {
+    padding: 3.2rem 3rem;
+  }
+}
+
+/* ==========================================================================
+   ACCESSIBILITY: PREFERS-REDUCED-MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  #fireworks-canvas {
+    display: none !important;
+  }
+
+  .ambient-particles {
+    display: none !important;
+  }
+
+  #btn-fireworks {
+    display: none !important;
+  }
+
+  .diya-svg {
+    animation: none !important;
+  }
+
+  .screen {
+    transition: opacity 0.2s linear !important;
+  }
+}

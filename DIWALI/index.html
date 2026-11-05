@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Diwali Experience — A Little Light, A Lot of Happiness</title>
+  <meta name="description" content="An interactive, high-aesthetic festive Diwali greeting experience celebrating light, joy, and peace.">
+
+  <!-- Content Security Policy -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';">
+
+  <!-- Google Fonts Preconnect & Stylesheets -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Fullscreen Canvas for Fireworks Engine -->
+  <canvas id="fireworks-canvas" aria-hidden="true"></canvas>
+
+  <!-- Atmospheric Background & Floating Particles -->
+  <div class="atmosphere-backdrop" aria-hidden="true"></div>
+  <div id="ambient-particles" class="ambient-particles" aria-hidden="true"></div>
+
+  <!-- Main Accessible Container -->
+  <main class="app-container" role="main">
+
+    <!-- SCREEN 1: INTRO SCREEN -->
+    <section id="screen-intro" class="screen active" data-screen="intro" aria-label="Introduction Screen">
+      <div class="screen-content">
+        <div id="intro-diya-mount" class="diya-mount" role="img" aria-label="An unlit Indian clay Diya lamp resting gracefully"></div>
+        <h1 class="main-heading glow-text">A Little Light, A Lot of Happiness.</h1>
+        <p class="sub-text">May the festival of lights bring radiance and warmth to your soul.</p>
+        <button type="button" id="btn-open-surprise" class="btn btn-primary" aria-label="Open your Diwali surprise">
+          Open Your Surprise
+        </button>
+      </div>
+    </section>
+
+    <!-- SCREEN 2: REVEAL SCREEN -->
+    <section id="screen-reveal" class="screen screen-reveal" data-screen="reveal" aria-label="Festive Reveal Screen" aria-live="polite">
+      <div class="screen-content">
+        <div id="reveal-diya-mount" class="diya-mount" role="img" aria-label="The Diya lamp ignited with a radiant golden flame"></div>
+        <h2 id="reveal-heading" class="reveal-heading glow-text">Happy Diwali</h2>
+        <p class="reveal-subtext">Lighting up your life with endless moments of brilliance...</p>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: GREETING CARD SCREEN -->
+    <section id="screen-card" class="screen" data-screen="card" aria-label="Diwali Greeting Card">
+      <div class="card-wrapper">
+        <article class="greeting-card">
+          <div id="card-diya-mount" class="card-diya-container" role="img" aria-label="Luminous Diya illuminating the festive greeting card"></div>
+
+          <div class="card-ornament" aria-hidden="true">
+            <span class="ornament-line"></span>
+            <span class="ornament-sparkle">✦</span>
+            <span class="ornament-line"></span>
+          </div>
+
+          <h2 class="card-heading glow-text">Happy Diwali, <span id="recipient-name">Friend</span>!</h2>
+          <p class="card-message">Wishing you and your loved ones sparkling joy, radiant peace, and everlasting prosperity this festive season.</p>
+
+          <div class="wish-container">
+            <div id="wish-box" class="wish-box" aria-live="polite">
+              <p id="wish-text" class="wish-text">"May every diya lit bring light into your life."</p>
+            </div>
+          </div>
+
+          <div class="controls-grid" role="group" aria-label="Card Controls">
+            <button type="button" id="btn-wish" class="btn btn-interactive btn-gold" aria-label="Generate a new festive wish">
+              Make a Wish ✨
+            </button>
+            <button type="button" id="btn-fireworks" class="btn btn-interactive btn-outline" aria-label="Launch celebratory fireworks">
+              Light Up the Sky ✨
+            </button>
+            <button type="button" id="btn-music" class="btn btn-interactive btn-outline" aria-pressed="false" aria-label="Toggle ambient festive music">
+              <span id="music-icon" aria-hidden="true">🎵</span> <span id="music-label">Music: Off</span>
+            </button>
+            <button type="button" id="btn-share" class="btn btn-interactive btn-outline" aria-label="Share this personalized greeting card">
+              <span>💌</span> Share ❤️
+            </button>
+          </div>
+
+          <div class="replay-wrapper">
+            <button type="button" id="btn-replay" class="btn-text-link" aria-label="Replay the Diwali experience from the beginning">
+              <span>↺</span> Replay Experience
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification Region -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span id="toast-message">Link copied to clipboard!</span>
+  </div>
+
+  <!-- GSAP Choreography Engine via CDN (Pinned version 3.12.5) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <!-- Application Orchestration Module -->
+  <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
+

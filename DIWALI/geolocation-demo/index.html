@@ -1,0 +1,500 @@
+<!--
+================================================================================
+EDUCATIONAL GUIDE: THE WEB GEOLOCATION API & BROWSER PRIVACY ARCHITECTURE
+================================================================================
+
+1. WHAT IS THE GEOLOCATION API?
+   The W3C Geolocation API (`navigator.geolocation`) allows web applications to
+   request the geographical position of the user's device (latitude, longitude,
+   altitude, and estimated accuracy in meters). It aggregates signals from:
+   - GPS satellites (on mobile devices)
+   - Nearby Wi-Fi access points and signal strengths
+   - Cellular tower triangulation
+   - IP address geolocation (as a low-accuracy fallback)
+
+2. WHY BROWSERS MANDATE A PERMISSION PROMPT
+   Location data is highly sensitive Personal Identifiable Information (PII).
+   Under modern web security standards:
+   - The Geolocation API is only accessible over Secure Contexts (HTTPS or localhost).
+   - Access is gated behind explicit user permission (Permissions-Policy / User Prompt).
+   - If a page attempts to query location, the browser intercepts the call and
+     presents an unblockable system-level dialog (e.g., "example.com wants to
+     know your location: Allow / Block").
+
+3. WHY "SILENT" LOCATION COLLECTION IS IMPOSSIBLE
+   Modern browsers are deliberately architected so that websites CANNOT bypass
+   the user permission prompt:
+   - There is no JavaScript function, trick, or hidden property to retrieve
+     accurate GPS/Wi-Fi location silently.
+   - If the user selects "Block" or dismisses the prompt, the API immediately
+     invokes the error callback with code 1 (`PERMISSION_DENIED`).
+   - Browser permission status persists per-origin, preventing pages from
+     spamming repeated popups once denied.
+
+4. WHY CONSENT AND CONTEXT MATTER
+   - Asking for permissions unexpectedly (e.g., immediately on page load) creates
+     user distrust and leads to high refusal rates.
+   - Best practice: Always explain WHY location is requested and HOW it is used
+     BEFORE invoking the browser prompt.
+   - This demo is 100% client-side: no data is ever transmitted, logged, or stored.
+================================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safe Geolocation API Educational Demo</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --danger: #ef4444;
+      --success: #10b981;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.25rem 1rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.75rem 1.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .privacy-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      margin-bottom: 1.25rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #0f172a;
+      flex: 1;
+      min-width: 170px;
+      justify-content: center;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .output-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .output-card.visible {
+      display: block;
+    }
+
+    .output-card h2 {
+      font-size: 1.05rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.92rem;
+    }
+
+    .data-row:last-child {
+      border-bottom: none;
+    }
+
+    .data-label {
+      color: var(--text-muted);
+    }
+
+    .data-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .status-box {
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .status-box.error {
+      display: block;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .status-box.info {
+      display: block;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--primary);
+    }
+
+    .maps-link {
+      display: inline-block;
+      margin-top: 0.85rem;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .maps-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Educational Dialog Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      max-width: 440px;
+      width: 100%;
+      padding: 1.5rem;
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-box h3 {
+      font-size: 1.15rem;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+
+    .modal-box p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.25rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 375px) {
+      .container {
+        padding: 1.25rem 1rem;
+      }
+      .actions {
+        flex-direction: column;
+      }
+      .btn-primary, .btn-secondary {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <header>
+      <div class="privacy-badge">
+        <span>🛡️</span> Zero Data Stored &middot; 100% Client-Side
+      </div>
+      <h1>Geolocation API Explorer</h1>
+      <p>
+        Learn how the browser handles location requests transparently with explicit consent and error handling.
+      </p>
+    </header>
+
+    <div class="actions">
+      <button type="button" id="btn-request" class="btn-primary">
+        <span>📍</span> Show my location
+      </button>
+      <button type="button" id="btn-clear" class="btn-secondary">
+        <span>🧹</span> Clear
+      </button>
+    </div>
+
+    <!-- Status / Error Notification -->
+    <div id="status-box" class="status-box" role="alert" aria-live="polite"></div>
+
+    <!-- Output Display Card -->
+    <section id="output-card" class="output-card" aria-live="polite">
+      <h2><span>🌐</span> Coordinates (Local View Only)</h2>
+      <div class="data-row">
+        <span class="data-label">Latitude:</span>
+        <span class="data-value" id="val-latitude">-</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Longitude:</span>
+        <span class="data-value" id="val-longitude">-</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Accuracy:</span>
+        <span class="data-value" id="val-accuracy">-</span>
+      </div>
+      <a id="maps-link" class="maps-link" href="#" target="_blank" rel="noopener noreferrer">
+        Verify on Google Maps &rarr;
+      </a>
+    </section>
+  </main>
+
+  <!-- Step 1: Pre-Permission Context Dialog -->
+  <div id="consent-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <h3 id="modal-title">📍 How this demo uses your location</h3>
+      <p>
+        This demo uses your browser's location API to show you where you are.
+        Nothing is sent to a server. Nothing is stored. It disappears when you close the tab.
+      </p>
+      <div class="modal-buttons">
+        <button type="button" id="btn-cancel" class="btn-secondary">Cancel</button>
+        <button type="button" id="btn-continue" class="btn-primary">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const btnRequest = document.getElementById('btn-request');
+    const btnClear = document.getElementById('btn-clear');
+    const modal = document.getElementById('consent-modal');
+    const btnContinue = document.getElementById('btn-continue');
+    const btnCancel = document.getElementById('btn-cancel');
+
+    const statusBox = document.getElementById('status-box');
+    const outputCard = document.getElementById('output-card');
+    const valLatitude = document.getElementById('val-latitude');
+    const valLongitude = document.getElementById('val-longitude');
+    const valAccuracy = document.getElementById('val-accuracy');
+    const mapsLink = document.getElementById('maps-link');
+
+    // 1. User clicks "Show my location" -> Show explanation dialog first
+    btnRequest.addEventListener('click', () => {
+      showModal();
+    });
+
+    // 2. User clicks "Cancel" in explanation dialog
+    btnCancel.addEventListener('click', () => {
+      hideModal();
+      showStatus('Location request cancelled. No browser prompt was triggered.', 'info');
+    });
+
+    // 3. User clicks "Continue" -> Trigger navigator.geolocation.getCurrentPosition()
+    btnContinue.addEventListener('click', () => {
+      hideModal();
+      requestUserLocation();
+    });
+
+    // 4. Clear button wipes the display
+    btnClear.addEventListener('click', () => {
+      clearDisplay();
+    });
+
+    function showModal() {
+      modal.classList.add('active');
+    }
+
+    function hideModal() {
+      modal.classList.remove('active');
+    }
+
+    function showStatus(message, type) {
+      statusBox.textContent = message;
+      statusBox.className = 'status-box ' + type;
+    }
+
+    function hideStatus() {
+      statusBox.className = 'status-box';
+      statusBox.textContent = '';
+    }
+
+    function clearDisplay() {
+      hideStatus();
+      outputCard.classList.remove('visible');
+      valLatitude.textContent = '-';
+      valLongitude.textContent = '-';
+      valAccuracy.textContent = '-';
+      mapsLink.href = '#';
+    }
+
+    function requestUserLocation() {
+      // Check if browser supports Geolocation
+      if (!('geolocation' in navigator)) {
+        showStatus('Error: The Geolocation API is not supported by your browser.', 'error');
+        return;
+      }
+
+      showStatus('Waiting for your decision in the browser prompt...', 'info');
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      };
+
+      navigator.geolocation.getCurrentPosition(onLocationSuccess, onLocationError, options);
+    }
+
+    // 5. Success callback
+    function onLocationSuccess(position) {
+      hideStatus();
+
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      const acc = position.coords.accuracy;
+
+      valLatitude.textContent = lat.toFixed(6) + '°';
+      valLongitude.textContent = lon.toFixed(6) + '°';
+      valAccuracy.textContent = '~' + Math.round(acc) + ' meters';
+
+      // Safe, local verification link
+      mapsLink.href = `https://www.google.com/maps?q=${lat},${lon}`;
+      outputCard.classList.add('visible');
+    }
+
+    // 6. Comprehensive Error Handling
+    function onLocationError(error) {
+      outputCard.classList.remove('visible');
+
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          showStatus(
+            'Permission Denied (Code 1): You chose not to share your location. Modern browsers respect your choice, and this page cannot override it.',
+            'error'
+          );
+          break;
+        case error.POSITION_UNAVAILABLE:
+          showStatus(
+            'Position Unavailable (Code 2): Your device could not determine a position (GPS/Wi-Fi/cell signals unavailable).',
+            'error'
+          );
+          break;
+        case error.TIMEOUT:
+          showStatus(
+            'Timeout (Code 3): The location request took too long to complete. Please try again.',
+            'error'
+          );
+          break;
+        default:
+          showStatus(
+            'Unexpected Error: ' + (error.message || 'An unknown error occurred.'),
+            'error'
+          );
+      }
+    }
+  </script>
+</body>
+</html>
